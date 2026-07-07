@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { HowToPlaySheet } from '../components/HowToPlaySheet'
 import { Layout } from '../components/layout/Layout'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
@@ -21,6 +22,7 @@ export function Home() {
   const [mode, setMode] = useState<'join' | 'create'>('join')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [howToOpen, setHowToOpen] = useState(false)
 
   useEffect(() => {
     if (codeFromUrl) {
@@ -96,8 +98,29 @@ export function Home() {
               decoding="async"
             />
             <p className="text-text-secondary text-lg max-w-xs mx-auto leading-relaxed">
-              Elegí el menor número que nadie más elija
+              Gana el número más bajo… si nadie más lo eligió
             </p>
+            <button
+              type="button"
+              onClick={() => setHowToOpen(true)}
+              className="mt-3 inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary transition-colors"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-3-3" />
+              </svg>
+              ¿Cómo se juega?
+            </button>
           </motion.div>
 
           {mode === 'join' && (
@@ -201,6 +224,8 @@ export function Home() {
           </a>
         </footer>
       </div>
+
+      <HowToPlaySheet open={howToOpen} onClose={() => setHowToOpen(false)} />
     </Layout>
   )
 }
