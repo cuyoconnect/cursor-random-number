@@ -3,16 +3,9 @@ import type { ReactNode } from 'react'
 interface LayoutProps {
   children: ReactNode
   showHeader?: boolean
-  isHost?: boolean
-  onTogglePresentation?: () => void
 }
 
-export function Layout({
-  children,
-  showHeader = true,
-  isHost,
-  onTogglePresentation,
-}: LayoutProps) {
+export function Layout({ children, showHeader = true }: LayoutProps) {
   return (
     <div className="min-h-dvh flex flex-col">
       {showHeader && (
@@ -25,15 +18,6 @@ export function Layout({
           >
             cursor.com
           </a>
-          {isHost && onTogglePresentation && (
-            <button
-              type="button"
-              onClick={onTogglePresentation}
-              className="text-xs font-medium text-text-secondary hover:text-text-primary px-3 py-1 rounded-full border border-border-subtle hover:bg-bg-elevated transition-colors"
-            >
-              Modo presentación
-            </button>
-          )}
         </header>
       )}
       <main className="flex-1">{children}</main>

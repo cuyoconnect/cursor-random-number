@@ -10,8 +10,6 @@ interface LobbyProps {
   onStart: () => void
   onUpdateSettings: (settings: RoomSettings) => void
   presentationMode?: boolean
-  isHost?: boolean
-  onTogglePresentation?: () => void
 }
 
 const ROUND_OPTIONS = [3, 5, 10]
@@ -21,8 +19,6 @@ export function Lobby({
   onStart,
   onUpdateSettings,
   presentationMode,
-  isHost: isHostProp,
-  onTogglePresentation,
 }: LobbyProps) {
   const { room, players, isHost, myPlayerId } = view
   const [totalRounds, setTotalRounds] = useState(room.totalRounds)
@@ -51,11 +47,7 @@ export function Lobby({
     : 'px-6 py-6 safe-bottom max-w-lg mx-auto'
 
   return (
-    <PageShell
-      presentationMode={presentationMode}
-      isHost={isHostProp}
-      onTogglePresentation={onTogglePresentation}
-    >
+    <PageShell presentationMode={presentationMode}>
       <div className={containerClass}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}

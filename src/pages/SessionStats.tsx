@@ -18,16 +18,12 @@ interface SessionStatsProps {
   view: GameView
   onPlayAgain: () => void
   presentationMode?: boolean
-  isHost?: boolean
-  onTogglePresentation?: () => void
 }
 
 export function SessionStats({
   view,
   onPlayAgain,
   presentationMode,
-  isHost: isHostProp,
-  onTogglePresentation,
 }: SessionStatsProps) {
   const navigate = useNavigate()
   const { players, history, room, isHost, myPlayerId } = view
@@ -63,11 +59,7 @@ export function SessionStats({
     : 'px-6 py-6 safe-bottom max-w-lg mx-auto'
 
   return (
-    <PageShell
-      presentationMode={presentationMode}
-      isHost={isHostProp}
-      onTogglePresentation={onTogglePresentation}
-    >
+    <PageShell presentationMode={presentationMode}>
       <div className={containerClass}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}

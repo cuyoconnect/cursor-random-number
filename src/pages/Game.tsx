@@ -23,8 +23,6 @@ interface GameProps {
   onCompleteReveal: () => void
   onNextRound: () => void
   presentationMode?: boolean
-  isHost?: boolean
-  onTogglePresentation?: () => void
 }
 
 export function Game({
@@ -33,8 +31,6 @@ export function Game({
   onCompleteReveal,
   onNextRound,
   presentationMode,
-  isHost: isHostProp,
-  onTogglePresentation,
 }: GameProps) {
   const { room, players, currentRound, choices, history, isHost, myPlayerId } =
     view
@@ -118,11 +114,7 @@ export function Game({
 
   if (room.phase === 'selecting') {
     return (
-      <PageShell
-        presentationMode={presentationMode}
-        isHost={isHostProp}
-        onTogglePresentation={onTogglePresentation}
-      >
+      <PageShell presentationMode={presentationMode}>
         {showPositionBadge && !presentationMode && (
           <PositionBadge
             rankings={analysis.rankings}
@@ -194,11 +186,7 @@ export function Game({
 
   if (room.phase === 'revealing') {
     return (
-      <PageShell
-        presentationMode={presentationMode}
-        isHost={isHostProp}
-        onTogglePresentation={onTogglePresentation}
-      >
+      <PageShell presentationMode={presentationMode}>
         <div className={`${containerClass} text-center text-text-secondary py-12`}>
           Calculando resultados...
         </div>
@@ -222,11 +210,7 @@ export function Game({
         : null
 
     return (
-      <PageShell
-        presentationMode={presentationMode}
-        isHost={isHostProp}
-        onTogglePresentation={onTogglePresentation}
-      >
+      <PageShell presentationMode={presentationMode}>
         {showPositionBadge && !presentationMode && (
           <PositionBadge
             rankings={analysis.rankings}

@@ -60,8 +60,7 @@ export function Room() {
     playAgain,
   } = useGameState(code || undefined, playerId)
 
-  const { presentationMode, setPresentationMode, togglePresentationMode } =
-    usePresentationMode(view?.isHost ?? false)
+  const { presentationMode } = usePresentationMode(view?.isHost ?? false)
 
   useEffect(() => {
     if (code) setActiveRoomCode(code)
@@ -109,8 +108,6 @@ export function Room() {
 
   const presentationProps = {
     presentationMode,
-    isHost: view.isHost,
-    onTogglePresentation: togglePresentationMode,
   }
 
   let content: ReactNode
@@ -153,14 +150,7 @@ export function Room() {
   }
 
   if (presentationMode) {
-    return (
-      <PresentationLayout
-        view={view}
-        onExitPresentation={() => setPresentationMode(false)}
-      >
-        {content}
-      </PresentationLayout>
-    )
+    return <PresentationLayout view={view}>{content}</PresentationLayout>
   }
 
   return content
