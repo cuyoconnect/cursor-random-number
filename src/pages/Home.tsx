@@ -97,30 +97,31 @@ export function Home() {
               className="w-full max-w-[220px] mx-auto mb-4 h-auto"
               decoding="async"
             />
-            <p className="text-text-secondary text-lg max-w-xs mx-auto leading-relaxed">
-              Gana el número más bajo… si nadie más lo eligió
-            </p>
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               onClick={() => setHowToOpen(true)}
-              className="mt-3 inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary transition-colors"
+              className="mt-4"
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <circle cx="11" cy="11" r="7" />
-                <path d="M20 20l-3-3" />
-              </svg>
-              ¿Cómo se juega?
-            </button>
+              <span className="inline-flex items-center gap-1.5">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M20 20l-3-3" />
+                </svg>
+                ¿Cómo se juega?
+              </span>
+            </Button>
           </motion.div>
 
           {mode === 'join' && (
@@ -214,14 +215,6 @@ export function Home() {
               ¿Organizás? <span className="underline underline-offset-2">Crear sala</span>
             </button>
           )}
-          <a
-            href="https://cursor.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block text-sm text-text-muted hover:text-text-primary transition-colors"
-          >
-            Powered by Cursor
-          </a>
         </footer>
       </div>
 

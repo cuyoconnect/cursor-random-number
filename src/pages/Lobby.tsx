@@ -86,10 +86,6 @@ export function Lobby({
                 />
               ))}
           </div>
-          <p className="text-xs text-text-muted mt-3">
-            Cada jugador tiene un avatar distinto — el tuyo dice{' '}
-            <span className="text-text-secondary">Vos</span>
-          </p>
           {room.demoMode && (
             <p className="text-xs text-text-muted mt-3">
               Modo demo — incluye bots automáticos
