@@ -146,7 +146,6 @@ export function Game({
               <WaitingForPlayers
                 players={players}
                 choices={choices}
-                myPlayerId={myPlayerId}
                 timeLeft={timeLeft}
               />
             ) : (
