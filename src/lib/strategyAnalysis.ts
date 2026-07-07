@@ -7,7 +7,7 @@ import type {
   StrategyInsight,
   StrategyType,
 } from '../types/game'
-import { findWinner, mean, median } from './gameLogic'
+import { findRoundPodium, findWinner, mean, median } from './gameLogic'
 
 const STRATEGY_LABELS: Record<
   StrategyType,
@@ -108,15 +108,12 @@ function countCollisions(playerId: string, history: RoundResult[]): number {
   return collisions
 }
 
-function countUniquePicks(playerId: string, history: RoundResult[]): number {
-  let uniques = 0
-  for (const round of history) {
-    const choice = round.choices.find((c) => c.playerId === playerId)
-    if (!choice) continue
-    const { duplicateNumbers } = findWinner(round.choices)
-    if (!duplicateNumbers.has(choice.number)) uniques++
-  }
-  return uniques
+export function getPlayerRank(
+  rankings: PlayerRanking[],
+  playerId: string,
+): number | null {
+  const index = rankings.findIndex((r) => r.playerId === playerId)
+  return index >= 0 ? index + 1 : null
 }
 
 export function analyzeSession(
@@ -143,13 +140,34 @@ export function analyzeSession(
 
   const rankings: PlayerRanking[] = players
     .map((player) => {
-      const wins = history.filter((r) => r.winnerId === player.id).length
-      const uniquePicks = countUniquePicks(player.id, history)
+      let points = 0
+      let wins = 0
+      const podiumFinishes = { first: 0, second: 0, third: 0 }
+
+      for (const round of history) {
+        const { placements } = findRoundPodium(round.choices)
+        const placement = placements.find((p) => p.playerId === player.id)
+        if (placement) {
+          points += placement.points
+          if (placement.rank === 1) {
+            wins++
+            podiumFinishes.first++
+          } else if (placement.rank === 2) {
+            podiumFinishes.second++
+          } else if (placement.rank === 3) {
+            podiumFinishes.third++
+          }
+        }
+      }
+
       const collisions = countCollisions(player.id, history)
-      const score = wins * 10 + uniquePicks * 3 - collisions
-      return { playerId: player.id, wins, uniquePicks, collisions, score }
+      return { playerId: player.id, points, wins, podiumFinishes, collisions }
     })
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points
+      if (b.wins !== a.wins) return b.wins - a.wins
+      return a.collisions - b.collisions
+    })
 
   return { distribution, insights, rankings, roundResults: history }
 }

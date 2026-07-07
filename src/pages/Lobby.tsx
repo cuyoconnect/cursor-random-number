@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
-import { Layout } from '../components/layout/Layout'
+import { PageShell } from '../components/layout/PageShell'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { PlayerChip } from '../components/game/PlayerChip'
@@ -10,11 +10,21 @@ interface LobbyProps {
   view: GameView
   onStart: () => void
   onUpdateSettings: (settings: RoomSettings) => void
+  presentationMode?: boolean
+  isHost?: boolean
+  onTogglePresentation?: () => void
 }
 
 const ROUND_OPTIONS = [3, 5, 10]
 
-export function Lobby({ view, onStart, onUpdateSettings }: LobbyProps) {
+export function Lobby({
+  view,
+  onStart,
+  onUpdateSettings,
+  presentationMode,
+  isHost: isHostProp,
+  onTogglePresentation,
+}: LobbyProps) {
   const { room, players, isHost } = view
   const [copied, setCopied] = useState(false)
   const [totalRounds, setTotalRounds] = useState(room.totalRounds)
@@ -58,9 +68,17 @@ export function Lobby({ view, onStart, onUpdateSettings }: LobbyProps) {
 
   const canStart = players.length >= 2
 
+  const containerClass = presentationMode
+    ? 'max-w-3xl mx-auto'
+    : 'px-6 py-6 safe-bottom max-w-lg mx-auto'
+
   return (
-    <Layout>
-      <div className="px-6 py-6 safe-bottom max-w-lg mx-auto">
+    <PageShell
+      presentationMode={presentationMode}
+      isHost={isHostProp}
+      onTogglePresentation={onTogglePresentation}
+    >
+      <div className={containerClass}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -70,7 +88,9 @@ export function Lobby({ view, onStart, onUpdateSettings }: LobbyProps) {
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={copyCode}
-            className="font-mono text-5xl font-semibold tracking-[0.2em] text-text-primary"
+            className={`font-mono font-semibold tracking-[0.2em] text-text-primary ${
+              presentationMode ? 'text-7xl' : 'text-5xl'
+            }`}
           >
             {room.code}
           </motion.button>
@@ -178,6 +198,6 @@ export function Lobby({ view, onStart, onUpdateSettings }: LobbyProps) {
           </p>
         )}
       </div>
-    </Layout>
+    </PageShell>
   )
 }

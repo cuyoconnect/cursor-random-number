@@ -10,6 +10,7 @@ interface RevealStageProps {
   choices: ChoiceVisibility[]
   onComplete: () => void
   isHost: boolean
+  large?: boolean
 }
 
 type Phase = 'countdown' | 'reveal' | 'winner'
@@ -19,6 +20,7 @@ export function RevealStage({
   choices,
   onComplete,
   isHost,
+  large,
 }: RevealStageProps) {
   const [phase, setPhase] = useState<Phase>('countdown')
   const [countdown, setCountdown] = useState(3)
@@ -66,8 +68,13 @@ export function RevealStage({
 
   const visibleChoices = revealOrder.slice(0, revealedCount)
 
+  const countdownSize = large ? 'text-9xl' : 'text-8xl'
+  const revealWidth = large ? 'max-w-2xl' : 'max-w-md'
+  const winnerNumberSize = large ? 'text-8xl' : 'text-6xl'
+  const winnerNameSize = large ? 'text-4xl' : 'text-2xl'
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+    <div className={`flex flex-col items-center justify-center min-h-[60vh] px-4 ${large ? 'min-h-[70vh]' : ''}`}>
       <AnimatePresence mode="wait">
         {phase === 'countdown' && (
           <motion.div
@@ -75,10 +82,10 @@ export function RevealStage({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.85, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            className="text-8xl font-normal text-text-primary tracking-[-0.03em]"
+            className={`${countdownSize} font-normal text-text-primary tracking-[-0.03em]`}
           >
             {countdown > 0 ? (
-              <AnimatedNumber value={countdown} className="text-8xl font-normal" />
+              <AnimatedNumber value={countdown} className={`${countdownSize} font-normal`} />
             ) : (
               '¡'
             )}
@@ -90,9 +97,9 @@ export function RevealStage({
             key="reveal"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="w-full max-w-md space-y-3"
+            className={`w-full ${revealWidth} space-y-3`}
           >
-            <h2 className="text-center text-xl font-medium mb-6 text-text-secondary">
+            <h2 className={`text-center font-medium mb-6 text-text-secondary ${large ? 'text-3xl' : 'text-xl'}`}>
               Revelando elecciones...
             </h2>
             {visibleChoices.map((choice, i) => {
@@ -118,7 +125,9 @@ export function RevealStage({
                     damping: 25,
                     delay: i * 0.05,
                   }}
-                  className={`flex items-center justify-between p-4 rounded-lg border ${
+                  className={`flex items-center justify-between rounded-lg border ${
+                    large ? 'p-5' : 'p-4'
+                  } ${
                     isWinner
                       ? 'bg-bg-elevated border-border-medium shadow-[0_0_24px_rgba(247,247,244,0.08)]'
                       : isDuplicate
@@ -143,7 +152,7 @@ export function RevealStage({
                     {choice.number !== undefined && (
                       <AnimatedNumber
                         value={choice.number}
-                        className="text-2xl font-medium font-mono"
+                        className={`font-medium font-mono ${large ? 'text-4xl' : 'text-2xl'}`}
                       />
                     )}
                   </motion.div>
@@ -167,16 +176,16 @@ export function RevealStage({
                 <motion.div
                   animate={{ scale: [1, 1.03, 1] }}
                   transition={{ repeat: Infinity, duration: 2 }}
-                  className="text-6xl font-normal tracking-[-0.03em] text-text-primary"
+                  className={`font-normal tracking-[-0.03em] text-text-primary ${winnerNumberSize}`}
                 >
                   {result.winningNumber !== null && (
                     <AnimatedNumber
                       value={result.winningNumber}
-                      className="text-6xl font-normal font-mono"
+                      className={`font-normal font-mono ${winnerNumberSize}`}
                     />
                   )}
                 </motion.div>
-                <p className="text-2xl font-medium">
+                <p className={`font-medium ${winnerNameSize}`}>
                   ¡{winnerPlayer.nickname} gana!
                 </p>
                 <p className="text-text-secondary">

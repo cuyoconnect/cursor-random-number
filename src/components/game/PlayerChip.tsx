@@ -7,6 +7,7 @@ interface PlayerChipProps {
   status?: 'waiting' | 'submitted' | 'winner'
   number?: number
   size?: 'sm' | 'md'
+  rank?: number
 }
 
 export function PlayerChip({
@@ -14,6 +15,7 @@ export function PlayerChip({
   status = 'waiting',
   number,
   size = 'md',
+  rank,
 }: PlayerChipProps) {
   const sizeClasses = size === 'sm' ? 'px-3 py-1.5 text-sm' : 'px-4 py-2 text-base'
 
@@ -28,6 +30,9 @@ export function PlayerChip({
         className="w-2.5 h-2.5 rounded-full shrink-0"
         style={{ backgroundColor: player.color }}
       />
+      {rank !== undefined && (
+        <span className="text-text-muted text-xs font-mono">#{rank}</span>
+      )}
       <span className="font-medium">{player.nickname}</span>
       {status === 'submitted' && (
         <span className="text-text-secondary text-sm">✓</span>

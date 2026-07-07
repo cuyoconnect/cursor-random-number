@@ -104,12 +104,18 @@ export interface StrategyInsight {
   description: string
 }
 
+export interface PodiumFinishes {
+  first: number
+  second: number
+  third: number
+}
+
 export interface PlayerRanking {
   playerId: string
+  points: number
   wins: number
-  uniquePicks: number
+  podiumFinishes: PodiumFinishes
   collisions: number
-  score: number
 }
 
 export interface SessionAnalysis {

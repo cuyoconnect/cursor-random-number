@@ -1,22 +1,36 @@
 import { motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
-import { Layout } from '../components/layout/Layout'
+import { PageShell } from '../components/layout/PageShell'
 import { NumberPicker } from '../components/game/NumberPicker'
 import { PlayerChip } from '../components/game/PlayerChip'
 import { RevealStage } from '../components/game/RevealStage'
 import { DistributionChart } from '../components/stats/DistributionChart'
+import {
+  Leaderboard,
+  PositionBadge,
+  RoundPodiumCard,
+} from '../components/stats/Leaderboard'
 import { Button } from '../components/ui/Button'
 import { AnimatedNumber } from '../components/ui/AnimatedNumber'
 import { Card } from '../components/ui/Card'
 import type { GameView } from '../types/game'
-import { findWinner, getPlayerName } from '../lib/gameLogic'
-import { buildHistogramData, getDistributionMax, getRoundHistogram } from '../lib/strategyAnalysis'
+import { findRoundPodium, findWinner, getPlayerName } from '../lib/gameLogic'
+import {
+  analyzeSession,
+  buildHistogramData,
+  getDistributionMax,
+  getPlayerRank,
+  getRoundHistogram,
+} from '../lib/strategyAnalysis'
 
 interface GameProps {
   view: GameView
   onSubmitChoice: (number: number) => void
   onCompleteReveal: () => void
   onNextRound: () => void
+  presentationMode?: boolean
+  isHost?: boolean
+  onTogglePresentation?: () => void
 }
 
 export function Game({
@@ -24,17 +38,28 @@ export function Game({
   onSubmitChoice,
   onCompleteReveal,
   onNextRound,
+  presentationMode,
+  isHost: isHostProp,
+  onTogglePresentation,
 }: GameProps) {
-  const { room, players, currentRound, choices, isHost } = view
+  const { room, players, currentRound, choices, history, isHost, myPlayerId } =
+    view
   const [selectedNumber, setSelectedNumber] = useState(
     Math.floor((room.minNum + room.maxNum) / 2),
   )
 
-  const myChoice = choices.find((c) => c.playerId === view.myPlayerId)
+  const myChoice = choices.find((c) => c.playerId === myPlayerId)
   const hasSubmitted = myChoice?.hasSubmitted ?? false
 
   const deadline = currentRound?.deadline
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
+
+  const analysis = useMemo(
+    () => analyzeSession(players, history),
+    [players, history],
+  )
+
+  const showPositionBadge = history.length > 0
 
   useEffect(() => {
     if (!deadline || room.phase !== 'selecting') {
@@ -61,17 +86,35 @@ export function Game({
   }, [choices, currentRound])
 
   const roundResult = findWinner(roundChoicesFull)
+  const roundPodium = findRoundPodium(roundChoicesFull)
   const histogram = getRoundHistogram(roundChoicesFull)
   const histData = buildHistogramData(histogram, room.minNum, room.maxNum)
   const histMax = getDistributionMax(histogram)
 
+  const containerClass = presentationMode
+    ? 'max-w-3xl mx-auto'
+    : 'px-6 py-6 safe-bottom max-w-lg mx-auto'
+
+  const titleClass = presentationMode ? 'text-5xl' : 'text-3xl'
+
   if (room.phase === 'selecting') {
     return (
-      <Layout>
-        <div className="px-6 py-6 safe-bottom max-w-lg mx-auto">
+      <PageShell
+        presentationMode={presentationMode}
+        isHost={isHostProp}
+        onTogglePresentation={onTogglePresentation}
+      >
+        {showPositionBadge && !presentationMode && (
+          <PositionBadge
+            rankings={analysis.rankings}
+            players={players}
+            playerId={myPlayerId}
+          />
+        )}
+        <div className={containerClass}>
           <div className="text-center mb-8">
             <p className="text-text-secondary text-sm">Ronda</p>
-            <h1 className="text-3xl font-normal tracking-tight">
+            <h1 className={`${titleClass} font-normal tracking-tight`}>
               {room.currentRound}{' '}
               <span className="text-text-secondary font-normal">
                 de {room.totalRounds}
@@ -91,16 +134,33 @@ export function Game({
             )}
           </div>
 
-          <Card className="mb-6">
-            <NumberPicker
-              min={room.minNum}
-              max={room.maxNum}
-              value={selectedNumber}
-              onChange={setSelectedNumber}
-              onSubmit={() => onSubmitChoice(selectedNumber)}
-              submitted={hasSubmitted}
-            />
-          </Card>
+          {!presentationMode && (
+            <Card className="mb-6">
+              <NumberPicker
+                min={room.minNum}
+                max={room.maxNum}
+                value={selectedNumber}
+                onChange={setSelectedNumber}
+                onSubmit={() => onSubmitChoice(selectedNumber)}
+                submitted={hasSubmitted}
+              />
+            </Card>
+          )}
+
+          {presentationMode && (
+            <Card className="mb-6 text-center py-8">
+              <p className="text-text-secondary text-lg">
+                {players.filter((p) => {
+                  const c = choices.find((ch) => ch.playerId === p.id)
+                  return c?.hasSubmitted
+                }).length}{' '}
+                de {players.length} jugadores enviaron su número
+              </p>
+              {timeLeft !== null && (
+                <p className="text-4xl font-mono mt-4">{timeLeft}s</p>
+              )}
+            </Card>
+          )}
 
           <div>
             <h2 className="text-sm font-medium text-text-secondary mb-3">
@@ -109,33 +169,47 @@ export function Game({
             <div className="flex flex-wrap gap-2">
               {players.map((player) => {
                 const choice = choices.find((c) => c.playerId === player.id)
+                const rank = getPlayerRank(analysis.rankings, player.id)
                 return (
                   <PlayerChip
                     key={player.id}
                     player={player}
                     status={choice?.hasSubmitted ? 'submitted' : 'waiting'}
+                    rank={presentationMode && rank ? rank : undefined}
                   />
                 )
               })}
             </div>
           </div>
         </div>
-      </Layout>
+      </PageShell>
     )
   }
 
   if (room.phase === 'revealing') {
     return (
-      <Layout>
-        <div className="px-6 py-6 safe-bottom">
+      <PageShell
+        presentationMode={presentationMode}
+        isHost={isHostProp}
+        onTogglePresentation={onTogglePresentation}
+      >
+        {showPositionBadge && !presentationMode && (
+          <PositionBadge
+            rankings={analysis.rankings}
+            players={players}
+            playerId={myPlayerId}
+          />
+        )}
+        <div className={presentationMode ? '' : 'px-6 py-6 safe-bottom'}>
           <RevealStage
             players={players}
             choices={choices}
             onComplete={onCompleteReveal}
             isHost={isHost}
+            large={presentationMode}
           />
         </div>
-      </Layout>
+      </PageShell>
     )
   }
 
@@ -145,8 +219,19 @@ export function Game({
       : null
 
     return (
-      <Layout>
-        <div className="px-6 py-6 safe-bottom max-w-lg mx-auto">
+      <PageShell
+        presentationMode={presentationMode}
+        isHost={isHostProp}
+        onTogglePresentation={onTogglePresentation}
+      >
+        {showPositionBadge && !presentationMode && (
+          <PositionBadge
+            rankings={analysis.rankings}
+            players={players}
+            playerId={myPlayerId}
+          />
+        )}
+        <div className={containerClass}>
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -157,7 +242,7 @@ export function Game({
             </p>
             {winnerName ? (
               <>
-                <h1 className="text-3xl font-normal tracking-tight mb-1">
+                <h1 className={`${titleClass} font-normal tracking-tight mb-1`}>
                   Ganó {winnerName}
                 </h1>
                 <p className="text-text-secondary">
@@ -172,30 +257,53 @@ export function Game({
               </>
             ) : (
               <>
-                <h1 className="text-3xl font-normal tracking-tight mb-1">Sin ganador</h1>
-                <p className="text-text-secondary">
-                  Todos repitieron números
-                </p>
+                <h1 className={`${titleClass} font-normal tracking-tight mb-1`}>
+                  Sin ganador
+                </h1>
+                <p className="text-text-secondary">Todos repitieron números</p>
               </>
             )}
           </motion.div>
 
           <Card className="mb-6">
             <h2 className="font-medium mb-4 text-sm text-text-secondary">
-              Distribución de la ronda
+              Podio de la ronda
             </h2>
-            <DistributionChart
-              data={histData}
-              maxCount={histMax}
-              compact
+            <p className="text-xs text-text-muted mb-3">
+              1° = 3 pts · 2° = 2 pts · 3° = 1 pt
+            </p>
+            <RoundPodiumCard
+              placements={roundPodium.placements}
+              players={players}
+              large={presentationMode}
             />
           </Card>
+
+          <Card className="mb-6">
+            <h2 className="font-medium mb-4 text-sm text-text-secondary">
+              Distribución de la ronda
+            </h2>
+            <DistributionChart data={histData} maxCount={histMax} compact />
+          </Card>
+
+          {!presentationMode && (
+            <Card className="mb-6">
+              <Leaderboard
+                rankings={analysis.rankings}
+                players={players}
+                highlightPlayerId={myPlayerId}
+                variant="compact"
+                title="Tabla de posiciones"
+              />
+            </Card>
+          )}
 
           <div className="flex flex-wrap gap-2 justify-center mb-8">
             {choices
               .filter((c) => c.number !== undefined)
               .map((c) => {
                 const player = players.find((p) => p.id === c.playerId)!
+                const rank = getPlayerRank(analysis.rankings, c.playerId)
                 return (
                   <PlayerChip
                     key={c.playerId}
@@ -204,6 +312,7 @@ export function Game({
                     status={
                       c.playerId === roundResult.winnerId ? 'winner' : undefined
                     }
+                    rank={presentationMode && rank ? rank : undefined}
                   />
                 )
               })}
@@ -219,7 +328,7 @@ export function Game({
             </p>
           )}
         </div>
-      </Layout>
+      </PageShell>
     )
   }
 

@@ -3,9 +3,16 @@ import type { ReactNode } from 'react'
 interface LayoutProps {
   children: ReactNode
   showHeader?: boolean
+  isHost?: boolean
+  onTogglePresentation?: () => void
 }
 
-export function Layout({ children, showHeader = true }: LayoutProps) {
+export function Layout({
+  children,
+  showHeader = true,
+  isHost,
+  onTogglePresentation,
+}: LayoutProps) {
   return (
     <div className="min-h-dvh flex flex-col">
       {showHeader && (
@@ -18,9 +25,20 @@ export function Layout({ children, showHeader = true }: LayoutProps) {
           >
             cursor.com
           </a>
-          <span className="text-xs font-medium tracking-wide uppercase text-text-primary bg-bg-elevated px-3 py-1 rounded-full border border-border-subtle">
-            Meetup · Mendoza
-          </span>
+          <div className="flex items-center gap-2">
+            {isHost && onTogglePresentation && (
+              <button
+                type="button"
+                onClick={onTogglePresentation}
+                className="text-xs font-medium text-text-secondary hover:text-text-primary px-3 py-1 rounded-full border border-border-subtle hover:bg-bg-elevated transition-colors"
+              >
+                Modo presentación
+              </button>
+            )}
+            <span className="text-xs font-medium tracking-wide uppercase text-text-primary bg-bg-elevated px-3 py-1 rounded-full border border-border-subtle">
+              Meetup · Mendoza
+            </span>
+          </div>
         </header>
       )}
       <main className="flex-1">{children}</main>

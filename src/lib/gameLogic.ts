@@ -7,6 +7,20 @@ export interface WinnerResult {
   duplicateNumbers: Set<number>
 }
 
+export const ROUND_PODIUM_POINTS = [3, 2, 1] as const
+
+export interface RoundPlacement {
+  playerId: string
+  rank: number
+  points: number
+  number: number
+}
+
+export interface RoundPodiumResult {
+  placements: RoundPlacement[]
+  duplicateNumbers: Set<number>
+}
+
 export function findWinner(choices: Choice[]): WinnerResult {
   const freq = new Map<number, number>()
   for (const c of choices) {
@@ -32,6 +46,20 @@ export function findWinner(choices: Choice[]): WinnerResult {
     uniqueChoices,
     duplicateNumbers,
   }
+}
+
+export function findRoundPodium(choices: Choice[]): RoundPodiumResult {
+  const { uniqueChoices, duplicateNumbers } = findWinner(choices)
+  const sorted = [...uniqueChoices].sort((a, b) => a.number - b.number)
+  const placements: RoundPlacement[] = sorted
+    .slice(0, ROUND_PODIUM_POINTS.length)
+    .map((choice, index) => ({
+      playerId: choice.playerId,
+      rank: index + 1,
+      points: ROUND_PODIUM_POINTS[index],
+      number: choice.number,
+    }))
+  return { placements, duplicateNumbers }
 }
 
 export function getRoundChoices(

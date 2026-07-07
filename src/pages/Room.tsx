@@ -1,6 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { PresentationLayout } from '../components/layout/PresentationLayout'
 import { useGameState } from '../hooks/useGameState'
+import { usePresentationMode } from '../hooks/usePresentationMode'
 import { getSession, setActiveRoomCode } from '../lib/session'
 import { Game } from './Game'
 import { Lobby } from './Lobby'
@@ -22,6 +24,9 @@ export function Room() {
     nextRound,
     playAgain,
   } = useGameState(code, playerId)
+
+  const { presentationMode, setPresentationMode, togglePresentationMode } =
+    usePresentationMode(view?.isHost ?? false)
 
   useEffect(() => {
     if (code) setActiveRoomCode(code)
@@ -55,29 +60,61 @@ export function Room() {
     )
   }
 
+  const presentationProps = {
+    presentationMode,
+    isHost: view.isHost,
+    onTogglePresentation: togglePresentationMode,
+  }
+
+  let content: ReactNode
+
   switch (view.room.phase) {
     case 'lobby':
-      return (
+      content = (
         <Lobby
           view={view}
           onStart={startGame}
           onUpdateSettings={updateSettings}
+          {...presentationProps}
         />
       )
+      break
     case 'selecting':
     case 'revealing':
     case 'round_summary':
-      return (
+      content = (
         <Game
           view={view}
           onSubmitChoice={submitChoice}
           onCompleteReveal={completeReveal}
           onNextRound={nextRound}
+          {...presentationProps}
         />
       )
+      break
     case 'session_stats':
-      return <SessionStats view={view} onPlayAgain={playAgain} />
+      content = (
+        <SessionStats
+          view={view}
+          onPlayAgain={playAgain}
+          {...presentationProps}
+        />
+      )
+      break
     default:
-      return null
+      content = null
   }
+
+  if (presentationMode) {
+    return (
+      <PresentationLayout
+        view={view}
+        onExitPresentation={() => setPresentationMode(false)}
+      >
+        {content}
+      </PresentationLayout>
+    )
+  }
+
+  return content
 }
