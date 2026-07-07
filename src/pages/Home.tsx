@@ -1,20 +1,33 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Layout } from '../components/layout/Layout'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { roomService } from '../lib/roomService'
 import { setSessionPlayerId } from '../lib/session'
 
+function normalizeCode(value: string): string {
+  return value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
+}
+
 export function Home() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const codeFromUrl = normalizeCode(searchParams.get('code') ?? '')
   const [nickname, setNickname] = useState('')
-  const [joinCode, setJoinCode] = useState('')
+  const [joinCode, setJoinCode] = useState(codeFromUrl)
   const [demoMode, setDemoMode] = useState(false)
   const [mode, setMode] = useState<'join' | 'create'>('join')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (codeFromUrl) {
+      setJoinCode(codeFromUrl)
+      setMode('join')
+    }
+  }, [codeFromUrl])
 
   const handleCreate = async () => {
     if (!nickname.trim()) {
@@ -47,13 +60,14 @@ export function Home() {
     }
     setSubmitting(true)
     try {
-      const result = await roomService.joinRoom(joinCode.trim(), nickname.trim())
+      const code = joinCode.trim().toUpperCase()
+      const result = await roomService.joinRoom(code, nickname.trim())
       if ('error' in result) {
         setError(result.error)
         return
       }
       setSessionPlayerId(result.playerId)
-      navigate(`/room/${joinCode.trim().toUpperCase()}`)
+      navigate(`/room/${code}`)
     } finally {
       setSubmitting(false)
     }

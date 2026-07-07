@@ -1,5 +1,7 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { JoinRoomForm } from '../components/game/JoinRoomForm'
+import { Layout } from '../components/layout/Layout'
 import { PresentationLayout } from '../components/layout/PresentationLayout'
 import { useGameState } from '../hooks/useGameState'
 import { usePresentationMode } from '../hooks/usePresentationMode'
@@ -8,11 +10,44 @@ import { Game } from './Game'
 import { Lobby } from './Lobby'
 import { SessionStats } from './SessionStats'
 
+function normalizeCode(value: string | undefined): string {
+  if (!value) return ''
+  return value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
+}
+
+function RoomJoinScreen({
+  code,
+  onJoined,
+}: {
+  code: string
+  onJoined: () => void
+}) {
+  return (
+    <Layout showHeader={false}>
+      <div className="flex min-h-dvh flex-col items-center justify-center px-6 py-8 safe-bottom">
+        <div className="text-center mb-10">
+          <p className="text-text-secondary text-sm mb-2">Unirse a la sala</p>
+          <p className="font-mono text-4xl font-semibold tracking-[0.2em] text-text-primary">
+            {code}
+          </p>
+        </div>
+        <JoinRoomForm
+          initialCode={code}
+          lockCode
+          onJoined={() => onJoined()}
+        />
+      </div>
+    </Layout>
+  )
+}
+
 export function Room() {
-  const { code } = useParams<{ code: string }>()
+  const { code: rawCode } = useParams<{ code: string }>()
+  const code = normalizeCode(rawCode)
   const navigate = useNavigate()
-  const session = getSession()
-  const playerId = session?.playerId ?? null
+  const [playerId, setPlayerId] = useState<string | null>(
+    () => getSession()?.playerId ?? null,
+  )
 
   const {
     view,
@@ -23,7 +58,7 @@ export function Room() {
     completeReveal,
     nextRound,
     playAgain,
-  } = useGameState(code, playerId)
+  } = useGameState(code || undefined, playerId)
 
   const { presentationMode, setPresentationMode, togglePresentationMode } =
     usePresentationMode(view?.isHost ?? false)
@@ -33,15 +68,27 @@ export function Room() {
   }, [code])
 
   useEffect(() => {
-    if (!loading && !view && code) {
-      const t = setTimeout(() => navigate('/'), 1500)
-      return () => clearTimeout(t)
+    if (!code) {
+      navigate('/', { replace: true })
     }
-  }, [loading, view, code, navigate])
+  }, [code, navigate])
 
-  if (!playerId) {
-    navigate('/')
+  const needsJoin = !playerId || (!loading && !view)
+
+  if (!code) {
     return null
+  }
+
+  if (needsJoin) {
+    return (
+      <RoomJoinScreen
+        code={code}
+        onJoined={() => {
+          const session = getSession()
+          setPlayerId(session?.playerId ?? null)
+        }}
+      />
+    )
   }
 
   if (loading) {
