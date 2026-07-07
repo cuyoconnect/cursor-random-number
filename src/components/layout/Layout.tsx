@@ -25,20 +25,15 @@ export function Layout({
           >
             cursor.com
           </a>
-          <div className="flex items-center gap-2">
-            {isHost && onTogglePresentation && (
-              <button
-                type="button"
-                onClick={onTogglePresentation}
-                className="text-xs font-medium text-text-secondary hover:text-text-primary px-3 py-1 rounded-full border border-border-subtle hover:bg-bg-elevated transition-colors"
-              >
-                Modo presentación
-              </button>
-            )}
-            <span className="text-xs font-medium tracking-wide uppercase text-text-primary bg-bg-elevated px-3 py-1 rounded-full border border-border-subtle">
-              Meetup · Mendoza
-            </span>
-          </div>
+          {isHost && onTogglePresentation && (
+            <button
+              type="button"
+              onClick={onTogglePresentation}
+              className="text-xs font-medium text-text-secondary hover:text-text-primary px-3 py-1 rounded-full border border-border-subtle hover:bg-bg-elevated transition-colors"
+            >
+              Modo presentación
+            </button>
+          )}
         </header>
       )}
       <main className="flex-1">{children}</main>

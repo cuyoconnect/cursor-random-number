@@ -2,7 +2,6 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { PageShell } from '../components/layout/PageShell'
 import { Button } from '../components/ui/Button'
-import { Card } from '../components/ui/Card'
 import { PlayerChip } from '../components/game/PlayerChip'
 import type { GameView, RoomSettings } from '../types/game'
 
@@ -108,13 +107,13 @@ export function Lobby({
           </Button>
         </div>
 
-        <Card className="mb-6">
+        <div className="mb-6">
           <h2 className="font-medium mb-4">
             Jugadores ({players.length})
           </h2>
           <div className="flex flex-wrap gap-2">
             {players.map((player) => (
-              <PlayerChip key={player.id} player={player} />
+              <PlayerChip key={player.id} player={player} presentationMode={presentationMode} />
             ))}
           </div>
           {room.demoMode && (
@@ -122,10 +121,10 @@ export function Lobby({
               Modo demo — incluye bots automáticos
             </p>
           )}
-        </Card>
+        </div>
 
         {isHost && (
-          <Card className="mb-6 space-y-5">
+          <div className="mb-6 space-y-5">
             <h2 className="font-medium">Configuración</h2>
 
             <div>
@@ -175,7 +174,7 @@ export function Lobby({
                 />
               </label>
             </div>
-          </Card>
+          </div>
         )}
 
         {isHost ? (

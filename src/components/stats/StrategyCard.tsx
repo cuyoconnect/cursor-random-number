@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import type { StrategyInsight } from '../../types/game'
 import type { Player } from '../../types/game'
+import { PlayerAvatar } from '../game/PlayerAvatar'
 
 interface StrategyCardProps {
   insight: StrategyInsight
@@ -32,10 +33,7 @@ export function StrategyCard({ insight, player }: StrategyCardProps) {
         </span>
         <div>
           <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: player.color }}
-            />
+            <PlayerAvatar player={player} size={28} />
             <span className="font-medium">{player.nickname}</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-bg-elevated text-text-secondary font-medium border border-border-subtle">
               {insight.label}

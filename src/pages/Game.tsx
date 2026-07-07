@@ -2,19 +2,13 @@ import { motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
 import { PageShell } from '../components/layout/PageShell'
 import { NumberPicker } from '../components/game/NumberPicker'
-import { PlayerChip } from '../components/game/PlayerChip'
-import { RevealStage } from '../components/game/RevealStage'
+import { WaitingForPlayers } from '../components/game/WaitingForPlayers'
 import { DistributionChart } from '../components/stats/DistributionChart'
-import {
-  Leaderboard,
-  PositionBadge,
-  RoundPodiumCard,
-} from '../components/stats/Leaderboard'
+import { Leaderboard, PositionBadge } from '../components/stats/Leaderboard'
 import { Button } from '../components/ui/Button'
-import { AnimatedNumber } from '../components/ui/AnimatedNumber'
 import { Card } from '../components/ui/Card'
 import type { GameView } from '../types/game'
-import { findRoundPodium, findWinner, getPlayerName } from '../lib/gameLogic'
+import { getPlayerName } from '../lib/gameLogic'
 import {
   analyzeSession,
   buildHistogramData,
@@ -74,6 +68,11 @@ export function Game({
     return () => clearInterval(interval)
   }, [deadline, room.phase])
 
+  useEffect(() => {
+    if (room.phase !== 'revealing' || !isHost) return
+    void onCompleteReveal()
+  }, [room.phase, isHost, onCompleteReveal])
+
   const roundChoicesFull = useMemo(() => {
     return choices
       .filter((c) => c.hasSubmitted && c.number !== undefined)
@@ -85,11 +84,19 @@ export function Game({
       }))
   }, [choices, currentRound])
 
-  const roundResult = findWinner(roundChoicesFull)
-  const roundPodium = findRoundPodium(roundChoicesFull)
   const histogram = getRoundHistogram(roundChoicesFull)
   const histData = buildHistogramData(histogram, room.minNum, room.maxNum)
   const histMax = getDistributionMax(histogram)
+
+  const roundNumbers = useMemo(() => {
+    const map: Record<string, number> = {}
+    for (const c of choices) {
+      if (c.hasSubmitted && c.number !== undefined) {
+        map[c.playerId] = c.number
+      }
+    }
+    return map
+  }, [choices])
 
   const containerClass = presentationMode
     ? 'max-w-3xl mx-auto'
@@ -134,18 +141,26 @@ export function Game({
             )}
           </div>
 
-          {!presentationMode && (
-            <Card className="mb-6">
-              <NumberPicker
-                min={room.minNum}
-                max={room.maxNum}
-                value={selectedNumber}
-                onChange={setSelectedNumber}
-                onSubmit={() => onSubmitChoice(selectedNumber)}
-                submitted={hasSubmitted}
+          {!presentationMode &&
+            (hasSubmitted ? (
+              <WaitingForPlayers
+                players={players}
+                choices={choices}
+                myPlayerId={myPlayerId}
+                timeLeft={timeLeft}
               />
-            </Card>
-          )}
+            ) : (
+              <Card className="mb-6">
+                <NumberPicker
+                  min={room.minNum}
+                  max={room.maxNum}
+                  value={selectedNumber}
+                  onChange={setSelectedNumber}
+                  onSubmit={() => onSubmitChoice(selectedNumber)}
+                  submitted={hasSubmitted}
+                />
+              </Card>
+            ))}
 
           {presentationMode && (
             <Card className="mb-6 text-center py-8">
@@ -161,26 +176,6 @@ export function Game({
               )}
             </Card>
           )}
-
-          <div>
-            <h2 className="text-sm font-medium text-text-secondary mb-3">
-              Estado del grupo
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {players.map((player) => {
-                const choice = choices.find((c) => c.playerId === player.id)
-                const rank = getPlayerRank(analysis.rankings, player.id)
-                return (
-                  <PlayerChip
-                    key={player.id}
-                    player={player}
-                    status={choice?.hasSubmitted ? 'submitted' : 'waiting'}
-                    rank={presentationMode && rank ? rank : undefined}
-                  />
-                )
-              })}
-            </div>
-          </div>
         </div>
       </PageShell>
     )
@@ -193,30 +188,27 @@ export function Game({
         isHost={isHostProp}
         onTogglePresentation={onTogglePresentation}
       >
-        {showPositionBadge && !presentationMode && (
-          <PositionBadge
-            rankings={analysis.rankings}
-            players={players}
-            playerId={myPlayerId}
-          />
-        )}
-        <div className={presentationMode ? '' : 'px-6 py-6 safe-bottom'}>
-          <RevealStage
-            players={players}
-            choices={choices}
-            onComplete={onCompleteReveal}
-            isHost={isHost}
-            large={presentationMode}
-          />
+        <div className={`${containerClass} text-center text-text-secondary py-12`}>
+          Calculando resultados...
         </div>
       </PageShell>
     )
   }
 
   if (room.phase === 'round_summary') {
-    const winnerName = roundResult.winnerId
-      ? getPlayerName(players, roundResult.winnerId)
-      : null
+    const myRank = getPlayerRank(analysis.rankings, myPlayerId)
+    const myRanking = analysis.rankings.find((r) => r.playerId === myPlayerId)
+    const nextRankAbove =
+      myRanking && myRank && myRank > 1
+        ? analysis.rankings
+            .slice(0, myRank - 1)
+            .reverse()
+            .find((r) => r.points > myRanking.points)
+        : null
+    const pointsBehind =
+      myRanking && nextRankAbove
+        ? nextRankAbove.points - myRanking.points
+        : null
 
     return (
       <PageShell
@@ -240,83 +232,52 @@ export function Game({
             <p className="text-text-secondary text-sm mb-1">
               Ronda {room.currentRound}
             </p>
-            {winnerName ? (
-              <>
-                <h1 className={`${titleClass} font-normal tracking-tight mb-1`}>
-                  Ganó {winnerName}
-                </h1>
-                <p className="text-text-secondary">
-                  con el número{' '}
-                  {roundResult.winningNumber !== null && (
-                    <AnimatedNumber
-                      value={roundResult.winningNumber}
-                      className="text-text-primary font-medium text-xl font-mono"
-                    />
-                  )}
-                </p>
-              </>
+            {myRank === 1 ? (
+              <h1 className={`${titleClass} font-normal tracking-tight`}>
+                Estás ganando
+              </h1>
+            ) : nextRankAbove && pointsBehind !== null && pointsBehind > 0 ? (
+              <h1 className={`${titleClass} font-normal tracking-tight`}>
+                {pointsBehind}{' '}
+                {pointsBehind === 1 ? 'punto' : 'puntos'} por debajo de:{' '}
+                {getPlayerName(players, nextRankAbove.playerId)}
+              </h1>
             ) : (
-              <>
-                <h1 className={`${titleClass} font-normal tracking-tight mb-1`}>
-                  Sin ganador
-                </h1>
-                <p className="text-text-secondary">Todos repitieron números</p>
-              </>
+              <h1 className={`${titleClass} font-normal tracking-tight`}>
+                Seguí jugando
+              </h1>
             )}
           </motion.div>
 
-          <Card className="mb-6">
-            <h2 className="font-medium mb-4 text-sm text-text-secondary">
-              Podio de la ronda
-            </h2>
-            <p className="text-xs text-text-muted mb-3">
-              1° = 3 pts · 2° = 2 pts · 3° = 1 pt
-            </p>
-            <RoundPodiumCard
-              placements={roundPodium.placements}
-              players={players}
-              large={presentationMode}
-            />
-          </Card>
-
-          <Card className="mb-6">
+          <div className="mb-6">
             <h2 className="font-medium mb-4 text-sm text-text-secondary">
               Distribución de la ronda
             </h2>
-            <DistributionChart data={histData} maxCount={histMax} compact />
-          </Card>
+            <DistributionChart
+              data={histData}
+              maxCount={histMax}
+              compact
+              centered
+              groupInterval={5}
+              minNum={room.minNum}
+              maxNum={room.maxNum}
+              playerChoice={choices.find((c) => c.playerId === myPlayerId)?.number}
+              showCollisionColors={false}
+            />
+          </div>
 
           {!presentationMode && (
-            <Card className="mb-6">
+            <div className="mb-6">
               <Leaderboard
                 rankings={analysis.rankings}
                 players={players}
                 highlightPlayerId={myPlayerId}
                 variant="compact"
                 title="Tabla de posiciones"
+                roundNumbers={roundNumbers}
               />
-            </Card>
+            </div>
           )}
-
-          <div className="flex flex-wrap gap-2 justify-center mb-8">
-            {choices
-              .filter((c) => c.number !== undefined)
-              .map((c) => {
-                const player = players.find((p) => p.id === c.playerId)!
-                const rank = getPlayerRank(analysis.rankings, c.playerId)
-                return (
-                  <PlayerChip
-                    key={c.playerId}
-                    player={player}
-                    number={c.number}
-                    status={
-                      c.playerId === roundResult.winnerId ? 'winner' : undefined
-                    }
-                    rank={presentationMode && rank ? rank : undefined}
-                  />
-                )
-              })}
-          </div>
 
           {isHost ? (
             <Button size="lg" onClick={onNextRound}>

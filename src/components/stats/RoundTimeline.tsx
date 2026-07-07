@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import type { Player, RoundResult } from '../../types/game'
 import { getPlayerOutcome } from '../../lib/gameLogic'
+import { PlayerAvatar } from '../game/PlayerAvatar'
 
 interface RoundTimelineProps {
   players: Player[]
@@ -21,10 +22,7 @@ export function RoundTimeline({ players, history }: RoundTimelineProps) {
       {players.map((player) => (
         <div key={player.id} className="min-w-[280px]">
           <div className="flex items-center gap-2 mb-2">
-            <span
-              className="w-2.5 h-2.5 rounded-full"
-              style={{ backgroundColor: player.color }}
-            />
+            <PlayerAvatar player={player} size={28} />
             <span className="text-sm font-medium">{player.nickname}</span>
           </div>
           <div className="flex items-center gap-3 pl-4">
