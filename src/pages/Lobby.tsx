@@ -24,8 +24,7 @@ export function Lobby({
   isHost: isHostProp,
   onTogglePresentation,
 }: LobbyProps) {
-  const { room, players, isHost } = view
-  const [copied, setCopied] = useState(false)
+  const { room, players, isHost, myPlayerId } = view
   const [totalRounds, setTotalRounds] = useState(room.totalRounds)
   const [minNum, setMinNum] = useState(room.minNum)
   const [maxNum, setMaxNum] = useState(room.maxNum)
@@ -33,29 +32,9 @@ export function Lobby({
   const copyCode = async () => {
     try {
       await navigator.clipboard.writeText(room.code)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
     } catch {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      /* clipboard unavailable */
     }
-  }
-
-  const shareCode = async () => {
-    const url = `${window.location.origin}/room/${room.code}`
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Único — Cursor Meetup Mendoza',
-          text: `Código: ${room.code}`,
-          url,
-        })
-        return
-      } catch {
-        /* user cancelled */
-      }
-    }
-    copyCode()
   }
 
   const applySettings = (rounds: number) => {
@@ -93,29 +72,32 @@ export function Lobby({
           >
             {room.code}
           </motion.button>
-          <p className="text-sm text-text-secondary mt-2">
-            {copied ? '¡Copiado!' : 'Tocá para copiar'}
-          </p>
         </motion.div>
-
-        <div className="flex gap-3 mb-8">
-          <Button variant="secondary" className="flex-1" onClick={copyCode}>
-            Copiar
-          </Button>
-          <Button variant="secondary" className="flex-1" onClick={shareCode}>
-            Compartir
-          </Button>
-        </div>
 
         <div className="mb-6">
           <h2 className="font-medium mb-4">
             Jugadores ({players.length})
           </h2>
           <div className="flex flex-wrap gap-2">
-            {players.map((player) => (
-              <PlayerChip key={player.id} player={player} presentationMode={presentationMode} />
-            ))}
+            {[...players]
+              .sort((a, b) => {
+                if (a.id === myPlayerId) return -1
+                if (b.id === myPlayerId) return 1
+                return 0
+              })
+              .map((player) => (
+                <PlayerChip
+                  key={player.id}
+                  player={player}
+                  presentationMode={presentationMode}
+                  isSelf={player.id === myPlayerId}
+                />
+              ))}
           </div>
+          <p className="text-xs text-text-muted mt-3">
+            Cada jugador tiene un avatar distinto — el tuyo dice{' '}
+            <span className="text-text-secondary">Vos</span>
+          </p>
           {room.demoMode && (
             <p className="text-xs text-text-muted mt-3">
               Modo demo — incluye bots automáticos

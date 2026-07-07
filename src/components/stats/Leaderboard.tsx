@@ -12,6 +12,17 @@ interface LeaderboardProps {
   variant?: 'compact' | 'full' | 'podium'
   title?: string
   roundNumbers?: Record<string, number>
+  roundPointsByPlayer?: Record<string, number>
+}
+
+function getOthersWithSameNumber(
+  roundNumbers: Record<string, number> | undefined,
+  playerId: string,
+): number {
+  if (!roundNumbers) return 0
+  const myNumber = roundNumbers[playerId]
+  if (myNumber === undefined) return 0
+  return Object.values(roundNumbers).filter((n) => n === myNumber).length - 1
 }
 
 function RankingRow({
@@ -22,6 +33,8 @@ function RankingRow({
   large,
   showMedals = false,
   roundNumber,
+  roundPoints,
+  othersWithSameNumber,
 }: {
   rank: number
   ranking: PlayerRanking
@@ -30,6 +43,8 @@ function RankingRow({
   large?: boolean
   showMedals?: boolean
   roundNumber?: number
+  roundPoints?: number
+  othersWithSameNumber?: number
 }) {
   const player = players.find((p) => p.id === ranking.playerId)!
   const rankLabel =
@@ -46,40 +61,57 @@ function RankingRow({
     )
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: rank * 0.03 }}
-      className={`flex items-center justify-between gap-3 py-2 border-b border-border-subtle last:border-0 ${
-        highlighted ? 'bg-bg-elevated -mx-2 px-2 rounded-lg' : ''
-      } ${large ? 'py-3' : ''}`}
-    >
-      <div className="flex items-center gap-3 min-w-0 flex-1">
-        {rankLabel}
-        <PlayerAvatar player={player} size={large ? (rank === 1 ? 36 : 28) : 28} />
-        <div className="min-w-0">
-          <span
-            className={`font-medium truncate block ${
-              large && rank === 1 ? 'text-lg' : ''
-            }`}
-          >
-            {getPlayerName(players, ranking.playerId)}
-          </span>
-        </div>
-      </div>
-      <span
-        className={`font-semibold text-text-primary shrink-0 ${
-          large ? 'text-base' : 'text-sm'
-        }`}
+    <div>
+      <motion.div
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: rank * 0.03 }}
+        className={`flex items-center justify-between gap-3 py-2 border-b border-border-subtle last:border-0 ${
+          highlighted ? 'bg-bg-elevated -mx-2 px-2 rounded-lg border-b-0' : ''
+        } ${large ? 'py-3' : ''}`}
       >
-        {ranking.points} pts
-        {roundNumber !== undefined && (
-          <span className="text-text-muted ml-1 font-mono font-normal">
-            ({roundNumber})
-          </span>
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {rankLabel}
+          <PlayerAvatar player={player} size={large ? (rank === 1 ? 36 : 28) : 28} />
+          <div className="min-w-0">
+            <span
+              className={`font-medium truncate block ${
+                large && rank === 1 ? 'text-lg' : ''
+              }`}
+            >
+              {getPlayerName(players, ranking.playerId)}
+              {highlighted && (
+                <span className="text-text-secondary font-normal"> · vos</span>
+              )}
+            </span>
+          </div>
+        </div>
+        <span
+          className={`font-semibold text-text-primary shrink-0 ${
+            large ? 'text-base' : 'text-sm'
+          }`}
+        >
+          {ranking.points} pts
+          {roundNumber !== undefined && (
+            <span className="text-text-muted ml-1 font-mono font-normal">
+              ({roundNumber})
+            </span>
+          )}
+        </span>
+      </motion.div>
+      {highlighted &&
+        roundPoints === 0 &&
+        othersWithSameNumber !== undefined &&
+        othersWithSameNumber > 0 &&
+        roundNumber !== undefined && (
+          <p className="text-xs text-text-muted -mx-2 px-2 pb-2 pt-1">
+            {othersWithSameNumber === 1
+              ? '1 persona más eligió el '
+              : `${othersWithSameNumber} personas más eligieron el `}
+            <span className="font-mono">{roundNumber}</span>
+          </p>
         )}
-      </span>
-    </motion.div>
+    </div>
   )
 }
 
@@ -90,6 +122,7 @@ export function Leaderboard({
   variant = 'full',
   title = 'Tabla de posiciones',
   roundNumbers,
+  roundPointsByPlayer,
 }: LeaderboardProps) {
   const large = variant === 'full' || variant === 'podium'
   const topCount = variant === 'compact' || variant === 'podium' ? 3 : rankings.length
@@ -134,6 +167,11 @@ export function Leaderboard({
             large={large}
             showMedals={variant === 'full' || variant === 'podium'}
             roundNumber={roundNumbers?.[ranking.playerId]}
+            roundPoints={roundPointsByPlayer?.[ranking.playerId]}
+            othersWithSameNumber={getOthersWithSameNumber(
+              roundNumbers,
+              ranking.playerId,
+            )}
           />
         ))}
         {highlightRanking && highlightRank && (
@@ -146,6 +184,11 @@ export function Leaderboard({
               highlighted
               large={large}
               roundNumber={roundNumbers?.[highlightRanking.playerId]}
+              roundPoints={roundPointsByPlayer?.[highlightRanking.playerId]}
+              othersWithSameNumber={getOthersWithSameNumber(
+                roundNumbers,
+                highlightRanking.playerId,
+              )}
             />
           </>
         )}

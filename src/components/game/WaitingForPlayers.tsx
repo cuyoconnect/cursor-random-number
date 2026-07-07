@@ -96,25 +96,17 @@ export function WaitingForPlayers({
         ))}
       </div>
 
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center pointer-events-none">
-        <motion.div
+      <div className="absolute inset-0 z-10 flex items-center justify-center px-6 pointer-events-none">
+        <motion.p
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl bg-bg-canvas/85 backdrop-blur-sm border border-border-subtle px-6 py-5 max-w-xs"
+          className="text-sm text-text-secondary text-center"
         >
-          <p className="font-medium text-text-primary mb-1">Elección enviada</p>
-          <p className="text-sm text-text-secondary">
-            {pendingPlayers.length > 0
-              ? 'Los demás están eligiendo...'
-              : 'Casi listos...'}
-          </p>
-          <p className="text-xs text-text-muted mt-3 font-mono">
-            {submittedCount} de {players.length} jugadores
-          </p>
-          {timeLeft !== null && timeLeft !== undefined && (
-            <p className="text-xs text-text-muted mt-1 font-mono">{timeLeft}s</p>
-          )}
-        </motion.div>
+          {pendingPlayers.length > 0 ? 'Esperando al resto' : 'Casi listos'}
+          {' · '}
+          {submittedCount}/{players.length}
+          {timeLeft !== null && timeLeft !== undefined && ` · ${timeLeft}s`}
+        </motion.p>
       </div>
     </div>
   )

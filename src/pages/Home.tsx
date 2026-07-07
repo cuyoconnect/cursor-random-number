@@ -66,106 +66,108 @@ export function Home() {
 
   return (
     <Layout showHeader={false}>
-      <div className="flex flex-col items-center justify-center px-6 py-8 safe-bottom min-h-[calc(100dvh-4rem)]">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <img
-            src="/cursor-meetup-mendoza-trimmed.avif"
-            alt="Cursor Meetup Mendoza"
-            width={442}
-            height={336}
-            className="w-full max-w-[220px] mx-auto mb-4 h-auto"
-            decoding="async"
-          />
-          <p className="text-text-secondary text-lg max-w-xs mx-auto leading-relaxed">
-            Elegí el menor número que nadie más elija
-          </p>
-        </motion.div>
-
-        {mode === 'join' && (
+      <div className="flex min-h-dvh flex-col px-6 safe-bottom">
+        <div className="flex flex-1 flex-col items-center justify-center py-8 w-full">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="w-full max-w-sm space-y-5"
+            className="text-center mb-12"
           >
-            <Input
-              label="Tu nombre"
-              placeholder="Juan"
-              value={nickname}
-              onChange={(e) => {
-                setNickname(e.target.value)
-                setError('')
-              }}
-              autoFocus
+            <img
+              src="/cursor-meetup-mendoza-trimmed.avif"
+              alt="Cursor Meetup Mendoza"
+              width={442}
+              height={336}
+              className="w-full max-w-[220px] mx-auto mb-4 h-auto"
+              decoding="async"
             />
-            <Input
-              label="Código de sala"
-              placeholder="ABC123"
-              value={joinCode}
-              onChange={(e) => {
-                setJoinCode(e.target.value.toUpperCase())
-                setError('')
-              }}
-              maxLength={6}
-              className="uppercase tracking-widest text-xl font-mono font-medium"
-            />
-
-            {error && <p className="text-text-secondary text-sm">{error}</p>}
-
-            <Button size="lg" onClick={handleJoin} disabled={submitting}>
-              {submitting ? 'Uniéndose...' : 'Unirse'}
-            </Button>
+            <p className="text-text-secondary text-lg max-w-xs mx-auto leading-relaxed">
+              Elegí el menor número que nadie más elija
+            </p>
           </motion.div>
-        )}
 
-        {mode === 'create' && (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="w-full max-w-sm space-y-5"
-          >
-            <Input
-              label="Tu nombre"
-              placeholder="Ana"
-              value={nickname}
-              onChange={(e) => {
-                setNickname(e.target.value)
-                setError('')
-              }}
-              autoFocus
-            />
-
-            <label className="flex items-center gap-3 p-4 rounded-lg bg-bg-elevated border border-border-subtle cursor-pointer hover:border-border-medium transition-colors">
-              <input
-                type="checkbox"
-                checked={demoMode}
-                onChange={(e) => setDemoMode(e.target.checked)}
-                className="w-5 h-5 rounded accent-text-primary"
+          {mode === 'join' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="w-full max-w-sm space-y-5"
+            >
+              <Input
+                label="Tu nombre"
+                placeholder="Juan"
+                value={nickname}
+                onChange={(e) => {
+                  setNickname(e.target.value)
+                  setError('')
+                }}
+                autoFocus
               />
-              <div>
-                <span className="font-medium block">Modo demo</span>
-                <span className="text-sm text-text-secondary">
-                  Agrega bots para probar solo
-                </span>
-              </div>
-            </label>
+              <Input
+                label="Código de sala"
+                placeholder="ABC123"
+                value={joinCode}
+                onChange={(e) => {
+                  setJoinCode(e.target.value.toUpperCase())
+                  setError('')
+                }}
+                maxLength={6}
+                className="uppercase tracking-widest text-xl font-mono font-medium"
+              />
 
-            {error && <p className="text-text-secondary text-sm">{error}</p>}
+              {error && <p className="text-text-secondary text-sm">{error}</p>}
 
-            <Button size="lg" onClick={handleCreate} disabled={submitting}>
-              {submitting ? 'Creando...' : 'Crear sala'}
-            </Button>
-            <Button variant="ghost" onClick={() => switchMode('join')}>
-              Volver
-            </Button>
-          </motion.div>
-        )}
+              <Button size="lg" onClick={handleJoin} disabled={submitting}>
+                {submitting ? 'Uniéndose...' : 'Unirse'}
+              </Button>
+            </motion.div>
+          )}
 
-        <footer className="mt-auto pt-12 text-center space-y-3">
+          {mode === 'create' && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="w-full max-w-sm space-y-5"
+            >
+              <Input
+                label="Tu nombre"
+                placeholder="Ana"
+                value={nickname}
+                onChange={(e) => {
+                  setNickname(e.target.value)
+                  setError('')
+                }}
+                autoFocus
+              />
+
+              <label className="flex items-center gap-3 p-4 rounded-lg bg-bg-elevated border border-border-subtle cursor-pointer hover:border-border-medium transition-colors">
+                <input
+                  type="checkbox"
+                  checked={demoMode}
+                  onChange={(e) => setDemoMode(e.target.checked)}
+                  className="w-5 h-5 rounded accent-text-primary"
+                />
+                <div>
+                  <span className="font-medium block">Modo demo</span>
+                  <span className="text-sm text-text-secondary">
+                    Agrega bots para probar solo
+                  </span>
+                </div>
+              </label>
+
+              {error && <p className="text-text-secondary text-sm">{error}</p>}
+
+              <Button size="lg" onClick={handleCreate} disabled={submitting}>
+                {submitting ? 'Creando...' : 'Crear sala'}
+              </Button>
+              <Button variant="ghost" onClick={() => switchMode('join')}>
+                Volver
+              </Button>
+            </motion.div>
+          )}
+        </div>
+
+        <footer className="pb-8 text-center space-y-3 shrink-0">
           {mode === 'join' && (
             <button
               type="button"

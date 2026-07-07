@@ -8,7 +8,7 @@ import { Leaderboard, PositionBadge } from '../components/stats/Leaderboard'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import type { GameView } from '../types/game'
-import { getPlayerName } from '../lib/gameLogic'
+import { findRoundPodium, getPlayerName } from '../lib/gameLogic'
 import {
   analyzeSession,
   buildHistogramData,
@@ -98,6 +98,18 @@ export function Game({
     return map
   }, [choices])
 
+  const roundPointsByPlayer = useMemo(() => {
+    const { placements } = findRoundPodium(roundChoicesFull)
+    const map: Record<string, number> = {}
+    for (const choice of roundChoicesFull) {
+      map[choice.playerId] = 0
+    }
+    for (const placement of placements) {
+      map[placement.playerId] = placement.points
+    }
+    return map
+  }, [roundChoicesFull])
+
   const containerClass = presentationMode
     ? 'max-w-3xl mx-auto'
     : 'px-6 py-6 safe-bottom max-w-lg mx-auto'
@@ -149,7 +161,7 @@ export function Game({
                 timeLeft={timeLeft}
               />
             ) : (
-              <Card className="mb-6">
+              <Card className="mb-6 !bg-transparent !border-0 shadow-none">
                 <NumberPicker
                   min={room.minNum}
                   max={room.maxNum}
@@ -274,6 +286,7 @@ export function Game({
                 variant="compact"
                 title="Tabla de posiciones"
                 roundNumbers={roundNumbers}
+                roundPointsByPlayer={roundPointsByPlayer}
               />
             </div>
           )}
