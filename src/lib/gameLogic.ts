@@ -118,13 +118,15 @@ export function shuffle<T>(arr: T[]): T[] {
   return copy
 }
 
+export const ROOM_TTL_MS = 60 * 60 * 1000
+
 export function generateRoomCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  let code = ''
-  for (let i = 0; i < 6; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)]
-  }
-  return code
+  const suffix = String(Math.floor(Math.random() * 100)).padStart(2, '0')
+  return `CURSOR${suffix}`
+}
+
+export function isRoomExpired(createdAt: number, now = Date.now()): boolean {
+  return createdAt > 0 && now - createdAt >= ROOM_TTL_MS
 }
 
 export const PLAYER_COLORS = [

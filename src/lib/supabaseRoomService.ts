@@ -7,6 +7,7 @@ import type {
 import {
   findWinner,
   generateRoomCode,
+  isRoomExpired,
   pickColor,
 } from './gameLogic'
 import { setActiveRoomCode, setSessionPlayerId } from './session'
@@ -29,6 +30,10 @@ type RpcView = {
   isHost: boolean
 }
 
+async function expireOldRooms(): Promise<void> {
+  await supabase.rpc('expire_old_rooms')
+}
+
 async function fetchView(
   code: string,
   playerId: string,
@@ -39,6 +44,7 @@ async function fetchView(
   })
   if (error || !data) return null
   const v = data as RpcView
+  if (isRoomExpired(v.room.createdAt)) return null
   return {
     room: v.room,
     players: v.players,
@@ -216,6 +222,8 @@ export class SupabaseRoomService implements RoomService {
   async createRoom(
     options: CreateRoomOptions,
   ): Promise<{ code: string; playerId: string }> {
+    await expireOldRooms()
+
     let code = generateRoomCode()
     let exists = true
     while (exists) {
@@ -277,14 +285,20 @@ export class SupabaseRoomService implements RoomService {
     code: string,
     nickname: string,
   ): Promise<{ playerId: string } | { error: string }> {
+    await expireOldRooms()
+
     const upper = code.toUpperCase().trim()
     const { data: room } = await supabase
       .from('rooms')
-      .select('id, phase')
+      .select('id, phase, created_at')
       .eq('code', upper)
       .maybeSingle()
 
     if (!room) return { error: 'Sala no encontrada' }
+    if (isRoomExpired(new Date(room.created_at).getTime())) {
+      await supabase.from('rooms').delete().eq('id', room.id)
+      return { error: 'La sala expiró' }
+    }
     if (room.phase !== 'lobby') return { error: 'La partida ya comenzó' }
 
     const playerId = generateId()

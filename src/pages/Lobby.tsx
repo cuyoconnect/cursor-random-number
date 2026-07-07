@@ -58,8 +58,8 @@ export function Lobby({
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={copyCode}
-            className={`font-mono font-semibold tracking-[0.2em] text-text-primary ${
-              presentationMode ? 'text-7xl' : 'text-5xl'
+            className={`font-mono font-semibold tracking-[0.12em] text-text-primary ${
+              presentationMode ? 'text-6xl' : 'text-4xl'
             }`}
           >
             {room.code}

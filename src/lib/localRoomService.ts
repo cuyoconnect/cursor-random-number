@@ -11,6 +11,7 @@ import {
   findWinner,
   generateRoomCode,
   getRoundChoices,
+  isRoomExpired,
   pickColor,
 } from './gameLogic'
 import { setActiveRoomCode, setSessionPlayerId } from './session'
@@ -34,9 +35,31 @@ function loadRoom(code: string): StoredRoom | null {
   try {
     const raw = localStorage.getItem(storageKey(code))
     if (!raw) return null
-    return JSON.parse(raw) as StoredRoom
+    const state = JSON.parse(raw) as StoredRoom
+    if (isRoomExpired(state.room.createdAt)) {
+      localStorage.removeItem(storageKey(code))
+      return null
+    }
+    return state
   } catch {
     return null
+  }
+}
+
+function purgeExpiredRooms(): void {
+  for (let i = localStorage.length - 1; i >= 0; i -= 1) {
+    const key = localStorage.key(i)
+    if (!key?.startsWith(STORAGE_PREFIX)) continue
+    try {
+      const raw = localStorage.getItem(key)
+      if (!raw) continue
+      const state = JSON.parse(raw) as StoredRoom
+      if (isRoomExpired(state.room.createdAt)) {
+        localStorage.removeItem(key)
+      }
+    } catch {
+      /* ignore corrupt room entries */
+    }
   }
 }
 
@@ -235,6 +258,7 @@ export class LocalRoomService {
   }
 
   createRoom(options: CreateRoomOptions): { code: string; playerId: string } {
+    purgeExpiredRooms()
     const playerId = generateId()
     setSessionPlayerId(playerId)
 
@@ -285,6 +309,7 @@ export class LocalRoomService {
     code: string,
     nickname: string,
   ): { playerId: string } | { error: string } {
+    purgeExpiredRooms()
     const upper = code.toUpperCase().trim()
     const state = loadRoom(upper)
     if (!state) return { error: 'Sala no encontrada' }

@@ -8,7 +8,7 @@ import { roomService } from '../lib/roomService'
 import { setSessionPlayerId } from '../lib/session'
 
 function normalizeCode(value: string): string {
-  return value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
+  return value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8)
 }
 
 export function Home() {
@@ -54,7 +54,7 @@ export function Home() {
       setError('Ingresá tu nombre')
       return
     }
-    if (joinCode.trim().length < 4) {
+    if (joinCode.trim().length < 6) {
       setError('Ingresá un código válido')
       return
     }
@@ -119,13 +119,13 @@ export function Home() {
               />
               <Input
                 label="Código de sala"
-                placeholder="ABC123"
+                placeholder="CURSOR07"
                 value={joinCode}
                 onChange={(e) => {
-                  setJoinCode(e.target.value.toUpperCase())
+                  setJoinCode(normalizeCode(e.target.value))
                   setError('')
                 }}
-                maxLength={6}
+                maxLength={8}
                 className="uppercase tracking-widest text-xl font-mono font-medium"
               />
 

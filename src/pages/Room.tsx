@@ -12,7 +12,7 @@ import { SessionStats } from './SessionStats'
 
 function normalizeCode(value: string | undefined): string {
   if (!value) return ''
-  return value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
+  return value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8)
 }
 
 function RoomJoinScreen({
@@ -27,7 +27,7 @@ function RoomJoinScreen({
       <div className="flex min-h-dvh flex-col items-center justify-center px-6 py-8 safe-bottom">
         <div className="text-center mb-10">
           <p className="text-text-secondary text-sm mb-2">Unirse a la sala</p>
-          <p className="font-mono text-4xl font-semibold tracking-[0.2em] text-text-primary">
+          <p className="font-mono text-4xl font-semibold tracking-[0.12em] text-text-primary">
             {code}
           </p>
         </div>
