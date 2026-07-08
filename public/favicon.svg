@@ -1,4 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" rx="8" fill="#0a0a0a"/>
-  <text x="16" y="22" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="500" fill="#f7f7f4">U</text>
+  <rect width="32" height="32" fill="#0a0a0a"/>
+  <path fill="#f7f7f4" d="M16 5.5 26.5 11.4v9.2L16 26.5 5.5 20.6v-9.2L16 5.5Z"/>
+  <path fill="#0a0a0a" fill-opacity=".18" d="M16 15.2 26.5 11.4v9.2L16 26.5V15.2Z"/>
+  <path fill="#0a0a0a" fill-opacity=".28" d="M5.5 11.4 16 15.2V26.5L5.5 20.6v-9.2Z"/>
+  <path fill="#0a0a0a" d="m13.6 9.8 6.8 6.2-2.55.4 1.65 3.95-1.9.8-1.7-4.05-2.3 2.1V9.8Z"/>
 </svg>

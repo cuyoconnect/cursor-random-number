@@ -91,7 +91,7 @@ export function Home() {
           >
             <img
               src="/cursor-meetup-mendoza-trimmed.avif"
-              alt="Cursor Meetup Mendoza"
+              alt="Cursor Meetup"
               width={442}
               height={336}
               className="w-full max-w-[220px] mx-auto mb-4 h-auto"
